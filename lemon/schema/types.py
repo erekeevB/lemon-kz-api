@@ -3,11 +3,7 @@ import graphql_jwt
 from graphene_django import DjangoObjectType
 from django.contrib.auth.models import User
 from lemon.models import *
-
-class UserType(DjangoObjectType):
-    class Meta:
-        model = User
-        fields = ("id", "first_name", "last_name", "username", "email", "is_staff")
+from user_extended.models import Profile
 
 class SexType(DjangoObjectType):
     class Meta:
@@ -18,19 +14,19 @@ class ItemType(DjangoObjectType):
 
     class Meta:
         model = Item
-        fields = ("__all__")
+        exclude = ("cartitem_set",)
 
     is_favourite = graphene.Boolean(required=True)
 
     qty = graphene.Int(required=True)
 
-    thumbnail = graphene.String(required=True)
+    thumbnail = graphene.String(required=False)
 
     def resolve_is_favourite(parent, info):
         user = info.context.user
         if user.is_authenticated:
             try:
-                FavouriteItem.objects.get(user__id = user.id).item.get(id=parent.id)
+                user.profile.favourite_items.get(id=parent.id)
                 return True
             except:
                 return False
@@ -50,6 +46,10 @@ class ItemType(DjangoObjectType):
         if img:
             return parent.itemimg_set.filter(isThumbnail=True).first().img
         return None
+
+class ItemListType(graphene.ObjectType):
+    items = graphene.List(ItemType)
+    has_next = graphene.Boolean()
 
 class ItemImgType(DjangoObjectType):
     class Meta:
@@ -75,3 +75,70 @@ class CartItemType(DjangoObjectType):
     class Meta:
         model = CartItem
         fields = ("__all__")
+
+class UserType(DjangoObjectType):
+    sex = graphene.String()
+    phone_number = graphene.Int()
+    favourite_items = graphene.List(ItemType)
+    cart_items = graphene.List(ItemType)
+    cart_qty = graphene.Int()
+
+    def resolve_sex(parent, info):
+        user = info.context.user
+        if user.is_staff:
+            try:
+                return User.objects.get(pk=parent.id).profile.sex
+            except:
+                pass
+        elif user.is_authenticated:
+            try:
+                return User.objects.get(pk=user.id).profile.sex
+            except:
+                pass
+        return None
+    
+    def resolve_phone_number(parent, info):
+        user = info.context.user
+        if user.is_staff:
+            try:
+                return User.objects.get(pk=parent.id).profile.phone_number
+            except:
+                pass
+        elif user.is_authenticated:
+            try:
+                return User.objects.get(pk=user.id).profile.phone_number
+            except:
+                pass
+        return None
+
+    def resolve_favourite_items(parent, info):
+        user = info.context.user
+        if user.is_staff:
+            try:
+                return User.objects.get(pk=parent.id).profile.favourite_items.all()
+            except:
+                pass
+        elif user.is_authenticated:
+            try:
+                return User.objects.get(pk=user.id).profile.favourite_items.all()
+            except:
+                pass
+        return None
+
+    def resolve_cart_items(parent, info):
+        user = info.context.user
+        if user.is_staff:
+            return Item.objects.filter(cartitem__user__id = parent.id)
+        elif user.is_authenticated:
+            return Item.objects.filter(cartitem__user__id = user.id)
+        return None
+
+    def resolve_cart_qty(parent, info):
+        user = info.context.user
+        if user.is_authenticated:
+            return CartItem.objects.filter(user__id = user.id).count()
+        return 0
+
+    class Meta:
+        model = User
+        fields = ("id", "first_name", "last_name", "username", "email", "is_staff")

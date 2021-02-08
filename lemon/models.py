@@ -75,11 +75,3 @@ class CartItem(models.Model):
 
     class Meta:
         unique_together = ("user", "item")
-
-
-class FavouriteItem(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    item = models.ManyToManyField(Item)
-
-    def __str__(self):
-        return self.user.username

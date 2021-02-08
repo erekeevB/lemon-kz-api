@@ -7,8 +7,13 @@ from .mutation_item_db import *
 from .mutation_auth import *
 
 class Query(graphene.ObjectType):
-    items = graphene.List(
-        ItemType, 
+    single_item = graphene.Field(ItemType, id=graphene.ID())
+
+    def resolve_single_item(parent, info, id):
+        return Item.objects.get(id=id)
+
+    item_list = graphene.Field(
+        ItemListType, 
         category=graphene.List(graphene.String),
         brand=graphene.List(graphene.String),
         sex=graphene.String(), 
@@ -18,7 +23,7 @@ class Query(graphene.ObjectType):
         max_price=graphene.Float()
     )
 
-    def resolve_items(
+    def resolve_item_list(
         parent, 
         info, 
         category=None, 
@@ -44,47 +49,28 @@ class Query(graphene.ObjectType):
             
         if page and size:
             paginator = Paginator(item, size)
-            return paginator.get_page(page)
+            page_item = paginator.get_page(page)
+            return ItemListType(items=page_item, has_next=page_item.has_next())
 
-        return item
-
-    cart_items = graphene.List(ItemType)
-
-    def resolve_cart_items(parent, info):
-        user = info.context.user
-
-        if user.is_authenticated:
-            carts = CartItem.objects.filter(user__id = user.id)
-            item = []
-            for cart in carts:
-                item.append(cart.item)
-            return item
-        return None
-
-    cart_qty = graphene.Int()
-
-    def resolve_cart_qty(parent, info):
-        user = info.context.user
-
-        if user.is_authenticated:
-            return CartItem.objects.filter(user__id = user.id).count()
-        return 0
+        return ItemListType(items=item, has_next=False)
 
     categories = graphene.List(graphene.String)
 
     def resolve_categories(parent, info):
-        return list(Category.objects.all())
+        return Category.objects.all()
 
     sex = graphene.List(graphene.String)
 
     def resolve_sex(parent, info):
-        return list(Sex.objects.all())
+        return Sex.objects.all()
 
-    user = graphene.Field(UserType)
+    user = graphene.Field(UserType, id=graphene.ID())
 
-    def resolve_user(parent, info):
+    def resolve_user(parent, info, id=None):
         user = info.context.user
-        if user.is_authenticated:
+        if id:
+            return User.objects.get(id=id)
+        elif user.is_authenticated:
             return user
         else:
             return None
