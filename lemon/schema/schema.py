@@ -5,6 +5,7 @@ from django.core.paginator import Paginator
 from .types import *
 from .mutation_item_db import *
 from .mutation_auth import *
+from .mutation_user import *
 
 class Query(graphene.ObjectType):
     single_item = graphene.Field(ItemType, id=graphene.ID())
@@ -75,31 +76,6 @@ class Query(graphene.ObjectType):
         else:
             return None
 
-class CartMutation(graphene.Mutation):
-    class Arguments:
-        item_id=graphene.Int()
-        qty=graphene.Int()
-        add=graphene.Boolean()
-    
-    cart_qty = graphene.Int()
-
-    error = graphene.String()
-
-    def mutate(parent, info, add, item_id, qty=1):
-        cart_qty=None
-        error="You must login to add items to cart!"
-        user = info.context.user
-        if user.is_authenticated:
-            cart_qty = CartItem.objects.filter(user__id = user.id).count()
-            try:
-                item = Item.objects.get(id = item_id)
-                cartItem = CartItem(user=user, item=item, qty=qty)
-                cartItem.save()
-                error = None
-            except:
-                error="Unable to add item to cart (Item already in cart or Item doesn't exist)!"
-        return AddToCartMutation(cart_qty=cart_qty, error=error)
-
 class Mutation(graphene.ObjectType):
     token_auth = ObtainJSONWebToken.Field()
     refresh_token = graphql_jwt.Refresh.Field()
@@ -107,7 +83,9 @@ class Mutation(graphene.ObjectType):
     register = RegisterMutation.Field()
     update_user = UserMutation.Field()
 
-    add_to_cart = CartMutation.Field()
+    mutate_cart = CartMutation.Field()
+
+    toggle_fav = FavouriteMutation.Field()
 
     create_item = CreateItemMutation.Field()
     delete_item = DeleteItemMutation.Field()

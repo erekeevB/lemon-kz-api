@@ -8,8 +8,8 @@ from lemon.models import Item
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
-    sex = models.CharField(max_length=1)
-    phone_number = models.IntegerField()
+    sex = models.CharField(max_length=1, null=True)
+    phone_number = models.IntegerField(null=True)
     favourite_items = models.ManyToManyField(Item)
 
     def __str__(self):
