@@ -39,7 +39,7 @@ class ItemType(DjangoObjectType):
                 return CartItem.objects.get(user__id = user.id, item__id = parent.id).qty
             except:
                 return 0
-        return None
+        return 0
 
     def resolve_thumbnail(parent, info):
         img = parent.itemimg_set.first()
@@ -78,7 +78,7 @@ class CartItemType(DjangoObjectType):
 
 class UserType(DjangoObjectType):
     sex = graphene.String()
-    phone_number = graphene.Int()
+    phone_number = graphene.String()
     favourite_items = graphene.List(ItemType)
     cart_items = graphene.List(ItemType)
     cart_qty = graphene.Int()
@@ -101,12 +101,12 @@ class UserType(DjangoObjectType):
         user = info.context.user
         if user.is_staff:
             try:
-                return User.objects.get(pk=parent.id).profile.phone_number
+                return str(User.objects.get(pk=parent.id).profile.phone_number)
             except:
                 pass
         elif user.is_authenticated:
             try:
-                return User.objects.get(pk=user.id).profile.phone_number
+                return str(User.objects.get(pk=user.id).profile.phone_number)
             except:
                 pass
         return None

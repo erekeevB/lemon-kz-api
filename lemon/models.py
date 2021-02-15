@@ -68,7 +68,7 @@ class Review(models.Model):
 class CartItem(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     item = models.ForeignKey(Item, on_delete=models.CASCADE)
-    qty = models.IntegerField()
+    qty = models.IntegerField(choices=[(i, i) for i in range(1, 11)])
 
     def __str__(self):
         return str(self.user.username + " / " + self.item.name + " / " + str(self.qty))

@@ -10,7 +10,7 @@ class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     sex = models.CharField(max_length=1, null=True)
     phone_number = models.IntegerField(null=True)
-    favourite_items = models.ManyToManyField(Item)
+    favourite_items = models.ManyToManyField(Item, blank=True)
 
     def __str__(self):
         return self.user.username

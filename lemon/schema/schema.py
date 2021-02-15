@@ -81,9 +81,10 @@ class Mutation(graphene.ObjectType):
     refresh_token = graphql_jwt.Refresh.Field()
 
     register = RegisterMutation.Field()
-    update_user = UserMutation.Field()
+    update_user = UpdateUserMutation.Field()
 
     mutate_cart = CartMutation.Field()
+    mutate_cart_item_qty = CartItemQtyMutation.Field()
 
     toggle_fav = FavouriteMutation.Field()
 

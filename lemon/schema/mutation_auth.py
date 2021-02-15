@@ -47,43 +47,6 @@ class RegisterMutation(graphene.Mutation):
 
         return RegisterMutation(errors = errors, message = message)
 
-class UserMutation(graphene.Mutation):
-    class Arguments:
-        username = graphene.String(required=False)
-        first_name = graphene.String(required=False)
-        last_name = graphene.String(required=False)
-        email = graphene.String(required=False)
-
-    user = graphene.Field(UserType)
-
-    error = graphene.List(graphene.String)
-
-    def mutate(root, info, username=None, first_name=None, last_name=None, email=None):
-        user = info.context.user
-        error = []
-        if user.is_authenticated:
-            if username:
-                if not User.objects.filter(username=username).exists():
-                    user.username = username
-                else:
-                    error.append("Username already exists!")
-            if email:
-                if not User.objects.filter(email=email).exists():
-                    user.email = email
-                else:
-                    error.append("E-Mail already exists!")
-            if not error:
-                if first_name:
-                    user.first_name = first_name
-                if last_name:
-                    user.last_name = last_name
-                user.save()
-            else:
-                user = info.context.user
-        else:
-            error.append("You must login to change you profile!")
-        return UserMutation(user=user, error=error)
-
 class ObtainJSONWebToken(graphql_jwt.JSONWebTokenMutation):
     user = graphene.Field(UserType)
 
