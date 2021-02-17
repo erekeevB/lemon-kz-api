@@ -2,6 +2,7 @@ import graphene
 import graphql_jwt
 import re
 from .types import *
+from graphql import GraphQLError
 
 class RegisterMutation(graphene.Mutation):
     class Arguments:
@@ -17,7 +18,7 @@ class RegisterMutation(graphene.Mutation):
     def mutate(root, info, username, email, password1, password2):
         errors = []
         message = None
-        regex = '^[a-z0-9]+[\._-]?[a-z0-9]+[@]\w+[.]\w{2,3}$'
+        regex = '^[A-Za-z0-9\.\+_-]+@[A-Za-z0-9\._-]+\.[a-zA-Z]*$'
 
         if len(username) < 2:
             errors.append("Username length must be at least 2!")
@@ -35,7 +36,7 @@ class RegisterMutation(graphene.Mutation):
             errors.append("Passwords do not match!")
 
         if len(errors) != 0:
-            return RegisterMutation(errors=errors, message = message)
+            raise GraphQLError(errors)
 
         print(password1 + " " + password2)
         

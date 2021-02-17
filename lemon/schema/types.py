@@ -49,7 +49,8 @@ class ItemType(DjangoObjectType):
 
 class ItemListType(graphene.ObjectType):
     items = graphene.List(ItemType)
-    has_next = graphene.Boolean()
+    pages = graphene.Int()
+    current_page = graphene.Int()
 
 class ItemImgType(DjangoObjectType):
     class Meta:

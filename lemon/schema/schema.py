@@ -30,8 +30,8 @@ class Query(graphene.ObjectType):
         category=None, 
         brand=None, 
         sex=None, 
-        page=None, 
-        size=None, 
+        page=1, 
+        size=12, 
         min_price=None, 
         max_price=None
         ):
@@ -48,12 +48,14 @@ class Query(graphene.ObjectType):
         if sex:
             item = item.filter(sex__name=sex)
             
-        if page and size:
-            paginator = Paginator(item, size)
-            page_item = paginator.get_page(page)
-            return ItemListType(items=page_item, has_next=page_item.has_next())
-
-        return ItemListType(items=item, has_next=False)
+        paginator = Paginator(item, size)
+        try:
+            page_item = paginator.page(page)
+        except PageNotAnInteger:
+            page_item = paginator.page(1)
+        except EmptyPage:
+            page_item = paginator.page(paginator.num_pages)
+        return ItemListType(items=page_item, pages=paginator.num_pages, current_page=page_item.number)
 
     categories = graphene.List(graphene.String)
 
